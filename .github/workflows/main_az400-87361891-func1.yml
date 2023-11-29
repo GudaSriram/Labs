@@ -1,37 +1,31 @@
-name: Deploy DotNet project to Azure Function App
+name: Azure Function App Deployment
 
 on:
-  [push]
-
-env:
-  AZURE_FUNCTIONAPP_NAME: 'az400-87361891-func1'   # set this to your function app name on Azure
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'       # set this to the path to your function app project, defaults to the repository root
-  DOTNET_VERSION: '6.0.x'                   # set this to the dotnet version to use (e.g. '2.1.x', '3.1.x', '5.0.x')
+  push:
+    branches:
+      - main
 
 jobs:
   build-and-deploy:
-    runs-on: windows-latest
-    environment: dev
+    runs-on: ubuntu-latest
+
     steps:
-    - name: 'Checkout GitHub Action'
-      uses: actions/checkout@v3
+    - name: Checkout Repository
+      uses: actions/checkout@v2
 
-    - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
-      uses: actions/setup-dotnet@v3
+    - name: Set up .NET Core
+      uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+        dotnet-version: '3.1'  # Adjust the version as needed
 
-    - name: 'Resolve Project Dependencies Using Dotnet'
-      shell: pwsh
-      run: |
-        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-        dotnet build --configuration Release --output ./output
-        popd
+    - name: Build with dotnet
+      run: dotnet build --configuration Release
 
-    - name: 'Run Azure Functions Action'
+    - name: Publish Artifact
+      run: dotnet publish -c Release -o $(Build.ArtifactStagingDirectory)
+
+    - name: Deploy to Azure Functions
       uses: Azure/functions-action@v1
-      id: fa
       with:
-        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-        package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
-        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+        app-name: 'az400-87361891-func1'
+        package: $(Build.ArtifactStagingDirectory)
