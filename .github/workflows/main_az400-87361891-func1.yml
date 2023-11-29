@@ -22,7 +22,7 @@ jobs:
       run: npm install
 
     - name: Copy Index File
-      run: cp Labs/index.html $GITHUB_WORKSPACE
+      run: cp .github/workflows/index.html $GITHUB_WORKSPACE
 
     - name: Deploy to Azure Functions
       run: |
