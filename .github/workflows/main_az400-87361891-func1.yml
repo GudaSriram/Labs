@@ -1,4 +1,4 @@
-name: CI/CD for Azure Functions
+name: Deploy to Azure Functions
 
 on:
   push:
@@ -21,13 +21,16 @@ jobs:
     - name: Install Dependencies
       run: npm install
 
-    - name: Log in to Azure CLI
-      run: az login
-
-    - name: Copy Index File
-      run: cp .github/workflows/index.html $GITHUB_WORKSPACE
+    - name: Log in to Azure
+      run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+      env:
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
     - name: Deploy to Azure Functions
       run: |
-        npm install -g azure-functions-core-tools
-        func azure functionapp publish az400-87361891-func1 --force
+        npm install -g azure-functions-core-tools@latest
+        func azure functionapp publish az400-87361891-func1 --force -p MyFunctionApp
+      env:
+        AZURE_FUNCTIONS_CORE_TOOLS_TELEMETRY_OPTOUT: '1'
