@@ -19,10 +19,10 @@ jobs:
         dotnet-version: '3.1'  # Adjust the version as needed
 
     - name: Build with dotnet
-      run: dotnet build --configuration Release
+      run: dotnet build MyFunctionApp.csproj --configuration Release
 
     - name: Publish Artifact
-      run: dotnet publish -c Release -o $(Build.ArtifactStagingDirectory)
+      run: dotnet publish MyFunctionApp.csproj -c Release -o $(Build.ArtifactStagingDirectory)
 
     - name: Deploy to Azure Functions
       uses: Azure/functions-action@v1
