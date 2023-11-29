@@ -21,13 +21,13 @@ jobs:
     - name: Install Dependencies
       run: npm install
 
+    - name: Log in to Azure CLI
+      run: az login
+
     - name: Copy Index File
       run: cp .github/workflows/index.html $GITHUB_WORKSPACE
 
     - name: Deploy to Azure Functions
       run: |
-        # Assuming you use Azure Functions Core Tools
         npm install -g azure-functions-core-tools
-
-        # Your deployment command
         func azure functionapp publish az400-87361891-func1 --force
