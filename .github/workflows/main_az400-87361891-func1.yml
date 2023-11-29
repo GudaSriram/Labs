@@ -30,4 +30,4 @@ jobs:
         npm install -g azure-functions-core-tools
 
         # Your deployment command
-        func azure functionapp publish <YourFunctionAppName> --force
+        func azure functionapp publish az400-87361891-func1 --force
