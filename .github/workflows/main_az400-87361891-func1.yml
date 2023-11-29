@@ -1,36 +1,37 @@
-name: Deploy to Azure Functions
+name: Deploy DotNet project to Azure Function App
 
 on:
-  push:
-    branches:
-      - main
+  [push]
+
+env:
+  AZURE_FUNCTIONAPP_NAME: 'az400-87361891-func1'   # set this to your function app name on Azure
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'       # set this to the path to your function app project, defaults to the repository root
+  DOTNET_VERSION: '6.0.x'                   # set this to the dotnet version to use (e.g. '2.1.x', '3.1.x', '5.0.x')
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
+  build-and-deploy:
+    runs-on: windows-latest
+    environment: dev
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
+    - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
+      uses: actions/setup-dotnet@v3
       with:
-        node-version: '14'
+        dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Install Dependencies
-      run: npm install
-
-    - name: Log in to Azure
-      run: az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
-      env:
-        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-
-    - name: Deploy to Azure Functions
+    - name: 'Resolve Project Dependencies Using Dotnet'
+      shell: pwsh
       run: |
-        npm install -g azure-functions-core-tools@latest
-        func azure functionapp publish az400-87361891-func1 --force -p MyFunctionApp
-      env:
-        AZURE_FUNCTIONS_CORE_TOOLS_TELEMETRY_OPTOUT: '1'
+        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+        dotnet build --configuration Release --output ./output
+        popd
+
+    - name: 'Run Azure Functions Action'
+      uses: Azure/functions-action@v1
+      id: fa
+      with:
+        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+        package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
+        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
